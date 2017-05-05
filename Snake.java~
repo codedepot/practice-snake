@@ -1,0 +1,336 @@
+import javax.swing.*;
+import java.util.Vector;
+import java.util.Enumeration; 
+import java.awt.Color;
+import java.awt.event.KeyListener; 
+import java.awt.event.KeyEvent;
+import java.awt.*;
+
+
+
+public class Snake {
+  
+  
+  public JFrame window;
+  
+  public int[][] board;
+  public Vector snake;
+  public int[] apple;
+  
+  public int direction;
+  
+  
+  public Snake(){
+    
+    this.window = new JFrame();
+    this.board = new int[50][50];
+    this.snake = new Vector();
+    int x  = (int)( Math.random()*40) + 5;
+    int y = (int) (Math.random()*40) + 5;
+    int[] temp1 = {x,y};
+    this.direction = 3;
+    
+    //making the snake in the vector
+    for(int i = 0; i< 4; i++){
+      temp1 = new int[]{x,y};
+      this.snake.add(temp1);
+      x++;
+    }
+    //System.out.println(this.snake);
+    boolean empty = true;
+    boolean inVector;
+    x = (int) (Math.random()*45) +2;
+    y = (int) (Math.random()*45) +2;
+    int[] tempCor = {x,y};
+    this.apple = tempCor;
+    
+    //choosing a location for the apple
+    while(empty){
+      x = (int) (Math.random()*45) +2;
+      y = (int) (Math.random()*45) +2;
+      //System.out.println(x + "  , " + y);
+      inVector = false;
+      Enumeration e = this.snake.elements();
+      
+      while(e.hasMoreElements()){
+        tempCor = (int[]) e.nextElement();
+        //System.out.println("" + tempCor[0] + ", " + tempCor[1] + " versus:  " + x + ", " + y);
+        if (tempCor[0] == x && tempCor[1] == y){
+          inVector = true;
+        }
+      }
+      if (inVector){
+        empty = true; 
+        //System.out.println("" + "hi" + empty);
+      }else{
+        empty = false;
+        //System.out.println("" + "wtf");
+      }
+    }
+    this.apple = new int[]{x,y};
+    
+    //the base panel
+    JPanel base = new JPanel();
+    base.setLayout(null);
+    Enumeration en = this.snake.elements();
+    JPanel box;
+    int[] temp;
+    
+    //drawing the snake
+    while(en.hasMoreElements()){
+      box = new JPanel();
+      temp = (int[]) en.nextElement();
+      x = temp[0];
+      y = temp[1];
+      //System.out.println("" + x + ", " + y);
+      box.setLocation(x*10, y*10);
+      box.setSize(10,10);
+      box.setBackground(Color.green);
+      base.add(box);
+    }
+    
+    //drawing the apple
+    box = new JPanel();
+    //System.out.print(this.apple[0] +", " + this.apple[1]);
+    x = this.apple[0];
+    y = this.apple[1];
+    box.setLocation(x*10, y*10);
+    //box.setLocation(460, 200);
+    box.setSize(10,10);
+    box.setBackground(Color.red);
+    base.add(box);
+
+    
+    
+    //making the window
+    window.setSize(527,538);
+    window.setContentPane(base);
+    window.setVisible(true);
+    //tryign something here
+     KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+     MyDispatcher md = new MyDispatcher();
+     md.snake = this;
+     manager.addKeyEventDispatcher(md);
+  }
+  
+  
+  
+  
+  public boolean moveForward(){
+    
+    int[] last = (int[]) this.snake.elementAt(this.snake.size() -1);
+    int[] sLast = (int[]) this.snake.elementAt(this.snake.size() -2);
+    int[] diff = new int[2];
+    int[] diff2 = new int[2];
+    
+    diff[0] = last[0] - sLast[0];
+    diff[1] = last[1] - sLast[1];
+    
+    //left
+    if( direction == 1){
+      diff2[0]--;
+      if(diff2[0] == -1*diff[0] &&diff2[1] == -1*diff[1]){
+        diff = new int[]{0,0}; 
+      }else{
+       diff = diff2; 
+      }
+      
+      //down
+    }else if(direction == 2){
+      
+      diff2[1]++;
+      if(diff2[0] == -1*diff[0] &&diff2[1] == -1*diff[1]){
+        diff = new int[]{0,0}; 
+      }else{
+       diff=diff2; 
+      //System.out.println("first one: " + diff[0] + ", " + diff[1]);
+      }
+      
+      //right
+    }else if(direction == 3){
+      diff2[0]++;
+      if(diff2[0] == -1*diff[0] &&diff2[1] == -1*diff[1]){
+        diff = new int[]{0,0}; 
+      }else{
+       diff=diff2; 
+      }
+      
+      //up
+    }else if(direction == 4){
+      
+      diff2[1]--;
+      //System.out.println("" + diff[0] + ", " + diff[1]);
+      if(diff2[0] == -1*diff[0] &&diff2[1] == -1*diff[1]){
+        diff = new int[]{0,0}; 
+      }else{
+       diff=diff2; 
+      }
+    }else{    
+    diff[0] = last[0] - sLast[0];
+    diff[1] = last[1] - sLast[1];
+    }
+    
+    int[] newPoint = new int[2];
+    newPoint[0] = last[0] + diff[0];
+    newPoint[1] = last[1] + diff[1];
+    if( newPoint[0] >50 || newPoint[0] <0 || newPoint[1] >50 || newPoint[1] <0){
+      return false; 
+    }else{
+      if(newPoint [0] == this.apple[0] && newPoint[1] == this.apple[1]){
+        this.snake.add(newPoint);
+        this.ateApple();
+      }else{
+        this.snake.add(newPoint);
+        this.snake.remove(0);
+        
+        
+      }
+      return true;
+    }
+  }
+  
+  
+  
+  
+  public void ateApple(){
+    boolean empty = true;
+    boolean inVector;
+    int x = (int) (Math.random()*45) +2;
+    int y = (int) (Math.random()*45) +2;
+    int[] tempCor = {x,y};
+    this.apple = tempCor;
+    
+    //choosing a location for the apple
+    while(empty){
+      x = (int) (Math.random()*45) +2;
+      y = (int) (Math.random()*45) +2;
+      //System.out.println(x + "  , " + y);
+      inVector = false;
+      Enumeration e = this.snake.elements();
+      
+      while(e.hasMoreElements()){
+        tempCor = (int[]) e.nextElement();
+        //System.out.println("" + tempCor[0] + ", " + tempCor[1] + " versus:  " + x + ", " + y);
+        if (tempCor[0] == x && tempCor[1] == y){
+          inVector = true;
+        }
+      }
+      if (inVector){
+        empty = true; 
+        //System.out.println("" + "hi" + empty);
+      }else{
+        empty = false;
+        //System.out.println("" + "wtf");
+      }
+    }
+    this.apple = new int[]{x,y}; 
+  }
+  
+  
+  
+  
+  public void redraw(){
+    JPanel base = new JPanel();
+    base.setLayout(null);
+    Enumeration en = this.snake.elements();
+    JPanel box;
+    int[] temp;
+    int x, y;
+    
+    //drawing the snake
+    while(en.hasMoreElements()){
+      box = new JPanel();
+      temp = (int[]) en.nextElement();
+      x = temp[0];
+      y = temp[1];
+      //System.out.println("" + x + ", " + y);
+      box.setLocation(x*10, y*10);
+      box.setSize(10,10);
+      box.setBackground(Color.green);
+      base.add(box);
+    }
+    //drawing the apple
+    box = new JPanel();
+    //System.out.print(this.apple[0] +", " + this.apple[1]);
+    x = this.apple[0];
+    y = this.apple[1];
+    box.setLocation(x*10, y*10);
+    //box.setLocation(460, 200);
+    box.setSize(10,10);
+    box.setBackground(Color.red);
+    base.add(box);
+
+    
+    this.window.setContentPane(base);
+    //this.window.pack();
+    this.window.setVisible(true);
+    
+  }
+  
+  public void setDirection(int dir){
+    
+    if(( dir == 1 && this.direction == 3) || (dir == 2 && this.direction == 4)||
+      (dir == 3 && this.direction == 1) || (dir==4 && this.direction == 2)){
+      
+      
+    }else{
+      this.direction = dir;
+    }
+    
+  }
+  
+  
+  public String printSnake(){
+    Enumeration en = this.snake.elements(); 
+    String output = "";
+    int[] temp = new int[2];
+    while(en.hasMoreElements()){
+      temp = (int[]) en.nextElement();
+      
+      output += "[" + temp[0] + ", " + temp[1] + "]";
+      output += "..";
+      
+    }
+    
+    
+    return output;
+    
+  }
+  
+
+  
+  public static void main(String[] args)throws InterruptedException{
+    Snake s = new Snake(); 
+    Thread t = new Thread();
+    boolean canMove = true;
+    for(int i = 0; canMove; i ++){
+      canMove = s.moveForward();
+      s.redraw();
+      t.sleep(100);
+      
+    } 
+    JOptionPane.showMessageDialog(null, "you lose");
+    System.exit(0);
+  }
+  
+      private class MyDispatcher implements KeyEventDispatcher {
+        public Snake snake;
+        @Override
+        public boolean dispatchKeyEvent(KeyEvent e) {
+
+          if(e.getKeyChar() == 'a'){
+            this.snake.setDirection(1); 
+          }else if(e.getKeyChar() == 's'){
+            this.snake.setDirection(2); 
+          }else if(e.getKeyChar() == 'd'){
+            this.snake.setDirection(3);
+          }else if(e.getKeyChar() =='w'){
+            this.snake.setDirection(4); 
+
+          }else if(e.getKeyChar() == 'o'){
+            System.exit(0);
+          }
+            return false;
+        }
+    }
+}
